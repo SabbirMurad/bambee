@@ -6,8 +6,13 @@
 
   State lives in two classes on <html>, styled in common.css/shopping.css:
     nav-hidden     — the bars are slid up out of view
-    nav-past-hero  — home page only: the bars have left the hero, so they
-                     drop the white glass for the ordinary solid bar
+    nav-past-hero  — home page only: the whole hero has scrolled out of
+                     view, so the bar that was drawn inside it comes back
+                     (on scroll-up) as the ordinary white bar, fixed to
+                     the top. Anywhere over the hero there is no white
+                     bar at all — only the one inside the photo.
+    nav-snap       — held for a frame at that hand-over, so the bar
+                     changes places without a visible slide
 */
 const root = document.documentElement;
 const navbar = document.querySelector('.navbar');
@@ -39,13 +44,23 @@ function start() {
     ticking = false;
     const y = Math.max(0, window.scrollY);
 
+    const delta = y - lastY;
+
     if (hero) {
-      // Hand over to the white bar just before the hero's foot reaches it.
-      const pastHero = hero.getBoundingClientRect().bottom <= barsHeight();
-      root.classList.toggle('nav-past-hero', pastHero);
+      // Past the hero's foot, not just past the bar inside it: scrolling
+      // back up over the photo must not pull the white bar down on it.
+      const pastHero = y > hero.offsetTop + hero.offsetHeight;
+      if (pastHero !== root.classList.contains('nav-past-hero')) {
+        root.classList.add('nav-snap');
+        root.classList.toggle('nav-past-hero', pastHero);
+        // Leaving on the way down, the white bar starts tucked away and
+        // comes back on the next scroll up, instead of appearing and
+        // sliding off over the page.
+        if (pastHero && delta >= 0) root.classList.add('nav-hidden');
+        requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('nav-snap')));
+      }
     }
 
-    const delta = y - lastY;
     if (Math.abs(delta) < THRESHOLD) return;
 
     if (y <= barsHeight()) {

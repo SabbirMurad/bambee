@@ -1,9 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
    Bambee Web — home.js
 
-   The landing page has three data-backed strips: the category
-   doors and the two product rows. Everything else on the page —
-   hero, collage, app band — is static copy and stays as drawn.
+   The landing page's data-backed parts are the hero's category
+   card, the category doors and the two product rows. Everything
+   else — the hero copy, the story and its tiles — is static copy
+   and stays as drawn.
 
    Both product rows are the same endpoint under a different sort,
    because there is no merchandising model: "Trending" is
@@ -15,70 +16,6 @@ import { Fetcher } from './fetcher.js';
 import { renderGrid, showSkeleton, hideSkeleton, emptyState, loadWishlist, paintImage } from './catalog.js';
 import { session } from './session.js';
 import { toast } from './toast.js';
-
-/* ── Hero parallax ────────────────────────────────────────────
-   The drifting light leans a little towards the cursor. The
-   photograph deliberately does not — the subject is aligned to the
-   logo above her, and moving the picture with the pointer walked her
-   off that mark.
-
-   The lean is written to a CSS custom property rather than to
-   `transform`, because the orbs are already running their drift
-   animations on transform and setting that inline would cancel them.
-   The stylesheet composes the two through a translate() that reads
-   these values, so they cannot fight.
-
-   Pointer-position work is done on the animation frame — mousemove
-   fires far faster than the screen redraws, and doing layout maths
-   on every event is how this kind of effect turns into jank.     */
-function initHeroParallax() {
-  const hero = document.querySelector('.hero-frame');
-  if (!hero) return;
-
-  // Whoever asked not to be moved is not moved by this either.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  // A finger is not a cursor: on touch there is no hover to follow.
-  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-
-  let targetX = 0, targetY = 0;   // where the pointer wants it
-  let currentX = 0, currentY = 0; // where it actually is
-  let frame = null;
-
-  const step = () => {
-    // Ease toward the target so the movement trails the cursor
-    // instead of snapping to it.
-    currentX += (targetX - currentX) * 0.06;
-    currentY += (targetY - currentY) * 0.06;
-    hero.style.setProperty('--px', currentX.toFixed(2) + 'px');
-    hero.style.setProperty('--py', currentY.toFixed(2) + 'px');
-
-    // Stop the loop once it has effectively arrived, so an idle hero
-    // is not holding a rAF open for nothing.
-    if (Math.abs(targetX - currentX) < 0.1 && Math.abs(targetY - currentY) < 0.1) {
-      frame = null;
-      return;
-    }
-    frame = requestAnimationFrame(step);
-  };
-
-  const wake = () => { if (frame === null) frame = requestAnimationFrame(step); };
-
-  hero.addEventListener('pointermove', (event) => {
-    const rect = hero.getBoundingClientRect();
-    // -1 … 1 from the centre of the hero.
-    const nx = (event.clientX - rect.left) / rect.width * 2 - 1;
-    const ny = (event.clientY - rect.top) / rect.height * 2 - 1;
-    targetX = nx * 18;
-    targetY = ny * 12;
-    wake();
-  });
-
-  hero.addEventListener('pointerleave', () => {
-    targetX = 0;
-    targetY = 0;
-    wake();
-  });
-}
 
 /* ── Newsletter signup ────────────────────────────────────────
    Posts to /v1/newsletter, which takes an address without an account.
@@ -217,6 +154,42 @@ async function loadCategories() {
   const frag = document.createDocumentFragment();
   categories.forEach((node) => frag.appendChild(categoryDoor(node)));
   doors.appendChild(frag);
+
+  fillHeroCategories(categories);
+}
+
+/* ── Hero category card ───────────────────────────────────────
+   The frosted card in the hero's corner: four categories, those with
+   a photograph first, so the round thumbnails are pictures rather
+   than empty discs. Stays hidden (as drawn) with fewer than two. */
+function fillHeroCategories(categories) {
+  const card = document.getElementById('hero-cats');
+  if (!card) return;
+
+  const withPhoto = categories.filter((c) => c.image_id || c.image);
+  const picked = withPhoto.concat(categories.filter((c) => !(c.image_id || c.image))).slice(0, 4);
+  if (picked.length < 2) return;
+
+  const grid = card.querySelector('.hero-cats-grid');
+  grid.innerHTML = '';
+  picked.forEach((node) => {
+    const link = document.createElement('a');
+    link.className = 'hero-cat';
+    link.href = '/listing?category=' + encodeURIComponent(node.slug);
+
+    const img = document.createElement('span');
+    img.className = 'hero-cat-img';
+    paintImage(img, node.image_id || node.image);
+    link.appendChild(img);
+
+    const name = document.createElement('span');
+    name.className = 'hero-cat-name';
+    name.textContent = node.name;   // merchant input: text, never HTML
+    link.appendChild(name);
+
+    grid.appendChild(link);
+  });
+  card.hidden = false;
 }
 
 /* ── Product rows ─────────────────────────────────────────────  */
@@ -331,7 +304,6 @@ async function loadRecentlyViewed() {
 (function init() {
   const [trending, arrivals] = productRows();
 
-  initHeroParallax();
   initSignup();
 
   pointViewAllLinks();

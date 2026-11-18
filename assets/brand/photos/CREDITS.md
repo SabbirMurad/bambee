@@ -80,3 +80,23 @@ the gloss — so `colorbalance` and `selectivecolor` both turned the
 foundation bottle yellow-green before the ground was anywhere near
 neutral. Keying worked, but left the drop shadows pink. The hand
 recolour is better.
+
+## Hero and story photography (November 2026)
+
+All Unsplash Licence (free, commercial use permitted), from the same
+unbranded set picked for the category images. None shows a maker's name.
+
+| File | Source | Used for | Edits |
+|---|---|---|---|
+| `hero-serum.webp` | `images.unsplash.com/photo-1608571702633-ef671c78ce25` | Hero, wide screens | Amber dropper bottle, unlabelled; 2400px wide |
+| `hero-serum-tall.webp` | same photograph | Hero, phones (`<picture>` source) | Centre 3:4 cut, 1000px wide |
+| `pill-skincare.webp` | `images.unsplash.com/photo-1585945037805-5fd82c2e60b1` | Story sentence, "Skincare" | 2:1 crop, 360px |
+| `pill-makeup.webp` | makeover set | Story sentence, "makeup" | 2:1 crop, 360px |
+| `pill-scent.webp` | fragrance set | Story sentence, "a scent" | 2:1 crop, 360px |
+| `edit-serums.webp` | serums set | Story bento, Serums tile | Square, 1000px |
+| `edit-makeover.webp` | makeover set | Story bento, Makeover tile | Square, 800px |
+| `edit-fragrance.webp` | fragrance set | Story bento, Fragrance tile | Square, 800px |
+
+`portrait.jpg`, `still.jpg` and `hero_bg_3` belonged to the old hero and
+collage and are no longer referenced. `clip.jpg` is still the About page's
+intro photo.

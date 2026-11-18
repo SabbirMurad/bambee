@@ -359,6 +359,10 @@ function start() {
   input.addEventListener('focus', () => { if (!input.value.trim()) renderHistory(); });
   input.addEventListener('keydown', onKeys);
   if (button) {
+    // Pressing the button must not take focus from the field first: on
+    // the home page's hero the field is only open while focused, and
+    // would close under the pointer before the click landed.
+    button.addEventListener('mousedown', (e) => e.preventDefault());
     // listing.js owns the button where the grid filters in place;
     // adding a listener rather than replacing its handler keeps both.
     if (filtersInPlace) button.addEventListener('click', () => remember(input.value));
