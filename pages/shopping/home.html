@@ -4,12 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 {% include "common/seo.html" %}
-<meta name="theme-color" content="{% if store_theme == 'crimson' %}#E32326{% elif store_theme == 'green' %}#1A8338{% else %}#FAAA39{% endif %}">
+<meta name="theme-color" content="{% if store_theme == 'crimson' %}#E32326{% elif store_theme == 'green' %}#1A8338{% elif store_theme == 'espresso' %}#2A1E16{% else %}#FAAA39{% endif %}">
 {% include "common.html" %}
 <link rel="stylesheet" href="/assets/css/common.css">
 <link rel="stylesheet" href="/assets/css/shopping.css">
 </head>
-<body>
+<!-- has-hero-overlay: the navbar is drawn inside the hero's photo frame
+     until it scrolls away, then returns as the ordinary white bar
+     (shopping.css "Header inside the hero", nav-autohide.js). -->
+<body class="has-hero-overlay">
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -26,6 +29,14 @@
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="#1A1A18" stroke-width="1.4" stroke-linecap="round"/></svg>
       </div>
     </div>
+
+    <!-- Shown only while the bar sits on the hero photo: the full
+         category row below is hidden there, so this carries "Shop all"
+         and the first three categories. -->
+    <nav class="nav-hero-cats" aria-label="Shop">
+      <a href="/listing" class="is-current">Shop all</a>
+      {% for c in nav_categories | slice(end=3) %}<a href="/listing?category={{ c.slug | urlencode }}">{{ c.name }}</a>{% endfor %}
+    </nav>
 
     <div class="nav-search">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#94908A" stroke-width="1.4"/><path d="M11 11 14.5 14.5" stroke="#94908A" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -72,117 +83,91 @@
 </nav>
 
 <!-- HERO ───────────────────────────────────────────────────────
-     Photo-led. Set the picture with --img on .hero-photo; until one
-     is set the frame lights itself so it reads as styled, not empty. -->
-<section class="hero hero--side hero--card">
+     One full-bleed photograph in a rounded frame, the copy laid over
+     its darkened foot. Phones get a tall centre cut of the same picture
+     through <picture>, so the bottle stays whole on a narrow screen. The category card is filled by home.js from the
+     real category list and stays hidden until it has something. -->
+<section class="hero">
   <div class="hero-frame">
-    <div class="hero-photo" style="--img:url('/assets/brand/photos/hero_bg_3.webp');"></div>
-    <div class="hero-scrim"></div>
+    <picture class="hero-photo">
+      <source media="(max-width: 640px)" srcset="/assets/brand/photos/hero-serum-tall.webp">
+      <img src="/assets/brand/photos/hero-serum.webp" alt="" fetchpriority="high">
+    </picture>
+    <span class="hero-scrim" aria-hidden="true"></span>
 
-    <!-- Drifting light. Decorative only, hence aria-hidden. -->
-    <div class="hero-orbs" aria-hidden="true">
-      <span class="hero-orb hero-orb--1"></span>
-      <span class="hero-orb hero-orb--2"></span>
-      <span class="hero-orb hero-orb--3"></span>
-    </div>
-
-    <div class="hero-body">
-      <h1 class="hero-title">Beauty, <br>boldly yours.</h1>
-      <p class="hero-desc">Skincare, makeup, fragrance and grooming, hand-picked from brands you trust and delivered to your door.</p>
-
-      <div class="hero-actions">
-        <button class="hero-cta-primary">
-          Shop Now
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 10 10 4M10 4H5M10 4v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+    <div class="hero-foot">
+      <div class="hero-body">
+        <p class="hero-eyebrow">Beauty store · Bangladesh</p>
+        <h1 class="hero-title">Beauty,<br>boldly yours.</h1>
+        <p class="hero-desc">Skincare, makeup, fragrance and grooming, hand-picked from brands you trust and delivered to your door.</p>
+        <div class="hero-actions">
+          <a class="hero-cta hero-cta--solid" href="/listing">
+            Shop now
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 10 10 4M10 4H5M10 4v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="hero-cta hero-cta--glass" href="/listing?sort=newest">New arrivals</a>
+        </div>
       </div>
-    </div>
 
+      <nav class="hero-cats" id="hero-cats" aria-label="Shop by category" hidden>
+        <div class="hero-cats-head">
+          <strong>Shop by category</strong>
+          <a href="/listing">See all</a>
+        </div>
+        <div class="hero-cats-grid"></div>
+      </nav>
+    </div>
   </div>
-
-    <!-- The claims strip. Duplicated once so the track can loop without
-         a visible jump; the copy is the same either way, so the second
-         run is hidden from assistive tech. -->
-    <!-- The claims strip. Two identical groups: the track travels
-         exactly one group's width, so at the moment it resets the
-         second group is standing where the first began. Each group
-         is also forced to at least a viewport wide, or the tail of
-         the loop would run out of content before the reset. -->
-    <div class="hero-marquee" aria-hidden="true">
-      <div class="hero-marquee-track">
-        <div class="hero-marquee-group">
-        <span>Clean Formulas</span><i>&bull;</i>
-        <span>Salon Grade</span><i>&bull;</i>
-        <span>Cruelty Free</span><i>&bull;</i>
-        <span>Free Shipping Over $50</span><i>&bull;</i>
-        <span>Every Skin Tone</span><i>&bull;</i>
-        <span>Clean Formulas</span><i>&bull;</i>
-        <span>Salon Grade</span><i>&bull;</i>
-        <span>Cruelty Free</span><i>&bull;</i>
-        <span>Free Shipping Over $50</span><i>&bull;</i>
-        <span>Every Skin Tone</span><i>&bull;</i>
-        </div>
-        <div class="hero-marquee-group">
-        <span>Clean Formulas</span><i>&bull;</i>
-        <span>Salon Grade</span><i>&bull;</i>
-        <span>Cruelty Free</span><i>&bull;</i>
-        <span>Free Shipping Over $50</span><i>&bull;</i>
-        <span>Every Skin Tone</span><i>&bull;</i>
-        <span>Clean Formulas</span><i>&bull;</i>
-        <span>Salon Grade</span><i>&bull;</i>
-        <span>Cruelty Free</span><i>&bull;</i>
-        <span>Free Shipping Over $50</span><i>&bull;</i>
-        <span>Every Skin Tone</span><i>&bull;</i>
-        </div>
-      </div>
-    </div>
 </section>
 
-<!-- COLLAGE ────────────────────────────────────────────────────
-     The brand's own block: who we are, in pictures. Static copy —
-     there is no merchandising model behind it, and inventing one
-     would mean an admin field that does not exist. -->
-<section class="collage">
-  <div class="collage-inner">
+<!-- STORY ──────────────────────────────────────────────────────
+     A single sentence with small pictures set into the words, then
+     the edit: a bento of tiles. The tiles link to categories by slug
+     (serums, makeover, fragnance — the slug keeps the shop's own
+     spelling), so renaming one of those slugs in the admin means
+     updating its href here. -->
+<section class="story">
+  <div class="story-inner">
+    <p class="story-line">
+      Skincare <span class="story-pill"><img src="/assets/brand/photos/pill-skincare.webp" alt=""></span> that works,
+      makeup <span class="story-pill"><img src="/assets/brand/photos/pill-makeup.webp" alt=""></span><br class="story-br">
+      that lasts, and a scent <span class="story-pill"><img src="/assets/brand/photos/pill-scent.webp" alt=""></span>
+      <em>people<br class="story-br"> remember.</em>
+    </p>
 
-    <div class="collage-left">
-      <div>
-        <h2 class="collage-title">Everything for<br>Your Routine</h2>
-        <p class="collage-sub">Seven lines, from makeup to grooming.</p>
+    <div class="edit">
+      <a class="edit-tile edit-tile--big" href="/listing?category=serums">
+        <img src="/assets/brand/photos/edit-serums.webp" alt="" loading="lazy">
+        <span class="edit-shade" aria-hidden="true"></span>
+        <span class="edit-caption">
+          <span>
+            <span class="edit-name">Serums</span>
+            <span class="edit-sub">Targeted treatments for every skin</span>
+          </span>
+          <span class="edit-go" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M4 10 10 4M10 4H5M10 4v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </span>
+      </a>
+
+      <div class="edit-tile edit-tile--wide edit-cod">
+        <svg width="34" height="34" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2" y="5" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="10.5" r="2.2" stroke="currentColor" stroke-width="1.4"/></svg>
+        <div>
+          <p class="edit-cod-title">Pay when it arrives. Cash on delivery, anywhere in Bangladesh.</p>
+          <p class="edit-cod-sub">Mobile banking accepted too.</p>
+        </div>
       </div>
 
-      <div class="collage-clip ph" style="--img:url('/assets/brand/photos/clip.jpg');">
-        <button class="collage-play" aria-label="Play the brand film">
-          <svg width="14" height="16" viewBox="0 0 14 16" fill="currentColor" aria-hidden="true"><path d="M13 8 0 15.8V.2L13 8Z"/></svg>
-        </button>
-      </div>
+      <a class="edit-tile" href="/listing?category=makeover">
+        <img src="/assets/brand/photos/edit-makeover.webp" alt="" loading="lazy">
+        <span class="edit-chip">Makeover</span>
+      </a>
+
+      <a class="edit-tile" href="/listing?category=fragnance">
+        <img src="/assets/brand/photos/edit-fragrance.webp" alt="" loading="lazy">
+        <span class="edit-chip">Fragrance</span>
+      </a>
     </div>
-
-    <div class="collage-portrait ph" style="--img:url('/assets/brand/photos/portrait.jpg');">
-      <!-- The step cut out of the picture's bottom-left corner. -->
-      <span class="collage-notch" aria-hidden="true"></span>
-      <div class="collage-cta-slot">
-        <button class="hero-cta-primary collage-cta">
-          Shop Now
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 10 10 4M10 4H5M10 4v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <p class="collage-note">From lip oils and serums to body mists, bath essentials and grooming — a range wide enough to build a routine that actually suits you.</p>
-      </div>
-    </div>
-
-    <div class="collage-side">
-      <div class="collage-seal" aria-hidden="true">
-        <svg viewBox="0 0 132 132">
-          <defs><path id="sealArc" d="M66,66 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs>
-          <text font-size="12.5" font-weight="600" letter-spacing="1.6" fill="var(--black)" font-family="var(--font-body)">
-            <textPath href="#sealArc" startOffset="0">Beauty Co · Beauty Co · Beauty Co · </textPath>
-          </text>
-        </svg>
-        <span class="collage-seal-dot"></span>
-      </div>
-      <div class="collage-still ph" style="--img:url('/assets/brand/photos/still.jpg');"></div>
-    </div>
-
   </div>
 </section>
 
@@ -428,9 +413,6 @@
   var userBtn = document.querySelector('.nav-user-btn');
   if (userBtn && !userBtn.closest('a')) userBtn.onclick = function() { location.href = '/account/profile'; };
   else if (userBtn && userBtn.closest('a')) userBtn.closest('a').href = '/account/profile';
-  // Hero CTA
-  var heroBtn = document.querySelector('.hero-cta-primary');
-  if (heroBtn) heroBtn.onclick = function() { location.href = '/listing'; };
   // Subnav links
   // Promo CTAs
   document.querySelectorAll('.promo-cta').forEach(function(cta) {

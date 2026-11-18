@@ -82,7 +82,7 @@ function paintTheme(theme) {
   document.documentElement.dataset.storeTheme = theme;
 }
 
-const THEME_NAMES = { orange: 'Orange', crimson: 'Crimson', green: 'Green' };
+const THEME_NAMES = { orange: 'Orange', crimson: 'Crimson', green: 'Green', espresso: 'Espresso' };
 
 async function chooseTheme(theme) {
   const previous = selectedTheme();

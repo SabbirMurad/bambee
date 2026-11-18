@@ -28,7 +28,7 @@ pub struct ReqBody {
 }
 
 /// The themes the storefront's stylesheet defines.
-pub const THEMES: [&str; 3] = ["orange", "crimson", "green"];
+pub const THEMES: [&str; 4] = ["orange", "crimson", "green", "espresso"];
 
 pub async fn task(req: HttpRequest, body: web::Json<ReqBody>) -> Result<HttpResponse, Error> {
     let admin = require_staff(&req, Permission::StoreSettings).await?;

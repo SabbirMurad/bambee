@@ -4,55 +4,19 @@
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── ══════════════════════════════════════════════════════
-   HOME — THE THREE OPENING SECTIONS
+   HOME — THE OPENING SECTIONS
 
-   Editorial rather than dashboard: a photographic hero, a collage
-   that says who the brand is, and a set of category doors. All
-   three are photo-led, so each image slot is a `.ph` — a neutral
-   placeholder that styles itself until a real picture is set on it
-   with `--img: url(...)`. See the note above `.ph` below.
-
-   The page ground is pure white, so these sections earn their
-   separation from contrast and from the tinted band on the collage,
-   not from a tinted background.
+   A photographic hero with the header inside it, a one-sentence
+   story with a bento of tiles under it, then the category doors.
+   The hero copy and the story are static; the header's category
+   pill comes from the server, and the hero's category card and the
+   doors are filled by home.js from the real category list.
 ══════════════════════════════════════════════════════ ── */
 
-/* ── Nav over the hero ────────────────────────────────────
-   Only on pages that opt in with `.has-hero-overlay` on <body> —
-   the home page. Everywhere else the navbar keeps its solid white
-   bar, so this cannot leak into the account or checkout chrome.
-
-   The nav is lifted out of the flow and laid over the hero, which
-   is why the hero can start at the top of the viewport. It keeps
-   its ordinary solid white bar and grey hairline from common.css,
-   so the logo and links stand on white rather than on the photo;
-   only the positioning is set here.                             */
-/*
-  The hairline drawn on the photograph itself — along the top of the
-  marquee at the foot of the hero. Not --border or --faint: both are
-  picked to sit on white, and against the photo's beige ground they
-  are close enough to it to disappear.
-*/
-.has-hero-overlay { --hero-rule: rgba(50,48,44,0.18); }
-
-/* Fixed rather than absolute: the bars stay over the hero at the top
-   and, with nav-autohide.js, slide back in on scroll-up anywhere down
-   the page. */
-.has-hero-overlay .navbar,
-.has-hero-overlay .subnav {
-  position: fixed;
-  left: 0;
-  right: 0;
-}
-.has-hero-overlay .navbar { top: 0; }
-.has-hero-overlay .subnav { top: var(--nav-h); }
-
 /* ── Photo slots ──────────────────────────────────────────
-   Every image on these sections is one of these. With no --img it
-   draws a soft neutral gradient with a faint grain, which reads as
-   "photo goes here" rather than as a broken box; set --img and the
-   picture covers it. Nothing here needs changing when the real
-   photography arrives — only the --img value.            */
+   A `.ph` takes its picture through `--img: url(...)`; with none it
+   draws a soft neutral gradient that reads as "photo goes here"
+   rather than a broken box. Used by the About page's intro photo. */
 .ph {
   position: relative;
   overflow: hidden;
@@ -74,538 +38,642 @@
   pointer-events: none;
 }
 
+/* ── Header inside the hero ───────────────────────────────
+   `.has-hero-overlay` on <body> (home page only). While the page is
+   at the top, the navbar is laid over the hero photo, inset to the
+   photo frame's edges, and turns white-on-glass; the full category
+   row is hidden and the bar's own pill carries "Shop all" and three
+   categories. "Deliver to" steps aside — it is back in the white bar.
+
+   Once the bar has scrolled away, nav-autohide.js sets
+   html.nav-past-hero and the bar comes back as the ordinary white
+   one, fixed to the top, sliding in on scroll-up like every other
+   page's. `H` below is html:not(.nav-past-hero) .has-hero-overlay.
+   ─────────────────────────────────────────────────────── */
+.nav-hero-cats { display: none; }
+
+/* The hero's glass: one recipe for every see-through container on the
+   photo — the header's pill, icons, account button and search, the
+   search suggestions, the "New arrivals" button and the category card.
+   Tinted dark rather than white, so white text reads on any part of the
+   picture. Solid white pieces (the current pill tab, cart, "Shop now")
+   stay solid. */
+.has-hero-overlay {
+  --glass-bg: rgba(28,22,18,0.42);
+  --glass-bg-hover: rgba(28,22,18,0.58);
+  --glass-border: rgba(255,255,255,0.22);
+  --glass-blur: blur(24px) saturate(150%);
+  --glass-rim: inset 0 1px 0 rgba(255,255,255,0.10);
+  --glass-shadow: 0 24px 48px -16px rgba(0,0,0,0.45);
+}
+
+html:not(.nav-past-hero) .has-hero-overlay .navbar {
+  position: absolute;
+  top: 12px;
+  /* The hero frame's own left and right edges (see .hero). */
+  left: 12px;
+  right: 12px;
+  height: 80px;
+  background: transparent;
+  border-bottom: 0;
+  /* Scrolls with the photo; the slide-away is for the white bar. */
+  transform: none;
+}
+html:not(.nav-past-hero) .has-hero-overlay .subnav { display: none; }
+html:not(.nav-past-hero) .has-hero-overlay .navbar-inner {
+  /* Full width of the frame, with the same side inset as the copy
+     below (.hero-foot), so the logo sits over the eyebrow. */
+  max-width: none;
+  padding: 0 32px;
+  gap: 20px;
+}
+html:not(.nav-past-hero) .has-hero-overlay .nav-logo-mark { background-color: #FFFFFF; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-logo-text { color: #FFFFFF; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-deliver { display: none; }
+
+html:not(.nav-past-hero) .has-hero-overlay .nav-hero-cats {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-rim);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  min-width: 0;
+}
+.nav-hero-cats a {
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #FFFFFF;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.nav-hero-cats a:hover { background: rgba(255,255,255,0.12); }
+.nav-hero-cats a.is-current { background: #FFFFFF; color: var(--black); }
+
+/* Glass buttons: the icons, the account button, and the search. */
+html:not(.nav-past-hero) .has-hero-overlay .nav-actions { gap: 8px; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-rim);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn:hover { background: var(--glass-bg-hover); }
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn > svg { width: 17px; height: 17px; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn .nav-badge { top: -3px; right: -3px; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn svg [stroke] { stroke: #FFFFFF; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn svg [fill="#32302C"] { fill: #FFFFFF; }
+/* The cart is the one solid button, as in the design. */
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn[data-nav="cart"] { background: #FFFFFF; border-color: #FFFFFF; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn[data-nav="cart"] svg [stroke] { stroke: var(--black); }
+html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn[data-nav="cart"] svg [fill="#32302C"] { fill: var(--black); }
+html:not(.nav-past-hero) .has-hero-overlay .nav-user-btn {
+  height: 42px;
+  padding: 0 12px 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-rim);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+html:not(.nav-past-hero) .has-hero-overlay .nav-user-btn:hover { background: var(--glass-bg-hover); }
+html:not(.nav-past-hero) .has-hero-overlay .nav-user-name { color: #FFFFFF; }
+html:not(.nav-past-hero) .has-hero-overlay .nav-user-btn > svg:last-child [stroke] { stroke: rgba(255,255,255,0.85); }
+html:not(.nav-past-hero) .has-hero-overlay .nav-avatar { background: rgba(255,255,255,0.92); }
+
+/* Search: a glass circle that opens, leftwards, into a long glass
+   field while it has focus. The field fills the circle invisibly, so a
+   click on the circle is a click in the field. Opening animates;
+   closing is instant, so no half-shrunk pill is left behind. The
+   suggestions list under it is glass too, tinted dark so its white
+   text reads over any part of the photo. Phones keep their own
+   tap-to-open row (common.css).
+
+   The field's blur is drawn by its ::before, not by the field itself:
+   an element with backdrop-filter becomes the backdrop for everything
+   inside it, so the list — a child of the field — would blur nothing
+   but the field's own 36px strip instead of the photo behind it. */
+@media (min-width: 641px) {
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    max-width: none;
+    margin: 0 0 0 auto;
+    padding: 0;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-rim);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition: none;
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search > svg:first-child { width: 14px; height: 14px; flex-shrink: 0; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search > svg:first-child [stroke] { stroke: #FFFFFF; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-btn { display: none; }
+
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search:focus-within {
+    /* As long as the bar has room for: the gap between the category
+       pill and the icons, up to 520px. */
+    width: clamp(260px, calc(100vw - 920px), 520px);
+    padding: 0 4px 0 14px;
+    justify-content: flex-start;
+    background: var(--glass-bg);
+    border-color: rgba(255,255,255,0.34);
+    transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search:focus-within input {
+    position: static;
+    opacity: 1;
+    cursor: text;
+    color: #FFFFFF;
+    caret-color: #FFFFFF;
+    font-size: 13.5px;
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search:focus-within input::placeholder { color: rgba(255,255,255,0.72); }
+  /* The go button: a small solid white circle, like the cart. */
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search:focus-within .nav-search-btn {
+    display: flex;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #FFFFFF;
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search:focus-within .nav-search-btn svg [stroke] { stroke: var(--black); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search:not(:focus-within) .nav-search-drop { display: none; }
+
+  /* The suggestions list, as glass. */
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop {
+    top: calc(100% + 8px);
+    left: -1px;
+    right: -1px;
+    padding: 8px;
+    border-radius: 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow), var(--glass-rim);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    color: #FFFFFF;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-head { color: rgba(255,255,255,0.62); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-clear { color: #FFFFFF; text-decoration: underline; text-underline-offset: 3px; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-item { color: #FFFFFF; border-radius: 12px; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-item:hover,
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-item.active { background: rgba(255,255,255,0.14); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-item.is-history { color: rgba(255,255,255,0.88); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-item.is-history svg { color: rgba(255,255,255,0.6); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-sub { color: rgba(255,255,255,0.62); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-price { color: #FFFFFF; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-thumb { background-color: rgba(255,255,255,0.10); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-remove { color: rgba(255,255,255,0.6); }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-remove:hover { background: rgba(255,255,255,0.16); color: #FFFFFF; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-item.is-all {
+    border-top: 1px solid rgba(255,255,255,0.16);
+    border-radius: 0 0 12px 12px;
+    color: #FFFFFF;
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-search-drop-empty { color: rgba(255,255,255,0.7); }
+}
+
+/* Past the hero: the ordinary white bars, fixed to the top. */
+html.nav-past-hero .has-hero-overlay .navbar { position: fixed; top: 0; left: 0; right: 0; }
+html.nav-past-hero .has-hero-overlay .subnav { position: fixed; top: var(--nav-h); left: 0; right: 0; }
+/* The hand-over itself is instant: nav-autohide.js holds nav-snap for
+   a frame, so the bar doesn't visibly slide while changing places. */
+html.nav-snap .navbar,
+html.nav-snap .subnav { transition: none !important; }
+
 /* ── ─────────────────────────────────────────────────────
    1 — HERO
-   Full-bleed dark photograph, inset from the page edges and
-   rounded, with the copy stacked on the right half. The picture is
-   the section; the panel behind it only shows through where the
-   photograph has not loaded.
+   One photograph in a rounded frame the full width of the window
+   less a 12px margin each side, 900px tall, the header laid along
+   its top, the copy on its
+   darkened foot bottom-left and the category card bottom-right.
    ───────────────────────────────────────────────────── ── */
 .hero {
-  /* Full-bleed and full-height. The navbar sits on top of it rather
-     than above it, so the hero starts at y=0 and the nav is pulled
-     back over it by .has-hero-overlay below. */
-  position: relative;
-  background: var(--ink);
+  background: var(--white);
+  padding: 12px 12px 0;
 }
 .hero-frame {
   position: relative;
-  /* svh, not vh: on mobile the browser chrome collapses as you scroll,
-     and vh would size to the tall state and crop the CTA on arrival. */
-  min-height: 100svh;
+  min-height: 900px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-radius: 28px;
   overflow: hidden;
-  background-color: var(--ink);
+  /* The photograph's own dark warm ground, shown while it loads. */
+  background-color: #3B3129;
 }
-/* Keeps the copy clear of the overlaid nav and off the very bottom. */
-.hero-frame::after {
-  content: '';
+.hero-photo,
+.hero-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hero-photo img {
   display: block;
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+  object-fit: cover;
+  /* The bottle stands in the middle of the picture, between the copy
+     on the left and the category card on the right. */
+  object-position: 50% 50%;
 }
-/* The photograph. Kept as its own layer rather than a background on
-   .hero-frame so the scrim below can sit between it and the copy. */
-/*
-  The wall in this photograph was extended to the right in the file
-  itself (see read_me), so the picture already carries the full width
-  of the hero — no panel, no fade, nothing to blend. It is cropped
-  from the left so the subject keeps her position as the window
-  widens, and the spare wall on the right is what gets cut.
-*/
-.hero-photo {
-  position: absolute;
-  inset: 0;
-  background-color: #FFFFFF;
-  background-image: var(--img, none);
-  background-size: cover;
-  /* Centred: the products ring the edges of this picture and the middle
-     is open, which is where the copy now sits. */
-  background-position: center;
-  background-repeat: no-repeat;
-}
-/*
-  No wash on the wide layout: the nav above is solid white, so nothing
-  has to be lifted off the photograph, and the copy sits in the
-  picture's open middle. The layer stays for the stacked layout below,
-  where the copy is laid over the busier parts of the picture and needs
-  the photo's own colour behind it.
-*/
+/* The picture is pale peach, so white type needs the foot taken well
+   down, a lean from the left where the copy is, and a little at the
+   top under the header. */
 .hero-scrim {
   position: absolute;
   inset: 0;
+  background:
+    linear-gradient(180deg, rgba(20,12,8,0.32) 0%, rgba(20,12,8,0) 22%, rgba(20,12,8,0) 34%, rgba(20,12,8,0.40) 64%, rgba(20,12,8,0.78) 100%),
+    linear-gradient(90deg, rgba(20,12,8,0.28) 0%, rgba(20,12,8,0) 60%);
 }
 
-.hero-body {
+.hero-foot {
   position: relative;
   z-index: 1;
-  /* No width: as a flex item the block sizes to its own content, and
-     auto margins on both sides centre it in the frame. Line breaks are
-     therefore set by the copy — the <br> in the headline and
-     .hero-desc's own max-width — rather than by a column measure. */
-  margin-inline: auto;
-  /* Top padding clears the nav + sub-nav sitting over the hero; the
-     equal sides are what keep the block centred rather than merely
-     centre-aligned. */
-  padding: calc(var(--nav-h) + var(--subnav-h)) 32px 96px;
-  text-align: center;
+  /* Clears the header above; the sides match the header's, so the
+     copy starts under the logo. */
+  padding: 140px 32px 48px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.hero-body { max-width: 860px; }
+.hero-eyebrow {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.88);
 }
 .hero-title {
   font-family: var(--font-head);
-  font-size: clamp(40px, 5.4vw, 76px);
-  font-weight: 700;
-  line-height: 1.06;
-  letter-spacing: -1.2px;
-  color: var(--black);
-  margin: 0;
+  font-size: clamp(48px, 7.4vw, 136px);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  color: #FFFFFF;
+  margin: 18px 0 0;
 }
 .hero-desc {
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--dark);
-  margin: 20px auto 0;
-  max-width: 440px;
+  font-size: clamp(16px, 1.1vw, 20px);
+  line-height: 1.55;
+  color: rgba(255,255,255,0.90);
+  max-width: 520px;
+  margin: 24px 0 0;
 }
 .hero-actions {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
   gap: 12px;
-  margin-top: 30px;
+  margin-top: 34px;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 58px;
+  padding: 0 32px;
+  border-radius: 999px;
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.18s, background 0.18s;
+}
+.hero-cta:hover { transform: translateY(-2px); }
+.hero-cta--solid { background: #FFFFFF; color: var(--black); }
+.hero-cta--solid svg { color: var(--black); transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+.hero-cta--solid:hover svg { transform: translate3d(2px, -2px, 0); }
+.hero-cta--glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-rim);
+  color: #FFFFFF;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+.hero-cta--glass:hover { background: var(--glass-bg-hover); }
+
+/* The frosted category card. */
+.hero-cats {
+  width: min(100%, 420px);
+  padding: 20px;
+  border-radius: 26px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-rim);
+  color: #FFFFFF;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+.hero-cats[hidden] { display: none; }
+.hero-cats-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.hero-cats-head strong { font-family: var(--font-head); font-weight: 600; font-size: 17px; }
+.hero-cats-head a {
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hero-cats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  text-align: center;
+}
+.hero-cat {
+  color: #FFFFFF;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 0;
+}
+.hero-cat-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-color: rgba(255,255,255,0.10);
+  border: 2px solid rgba(255,255,255,0.45);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.hero-cat:hover .hero-cat-img { transform: scale(1.06); border-color: #FFFFFF; }
+.hero-cat-name {
+  display: block;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Hero motion ──────────────────────────────────────────
-   Only the copy moves now. Each line rises a little and fades up,
-   one after the next, so the eye is walked down the stack in the
-   order it should be read rather than meeting all of it at once.
-
-   The photograph used to drift as well, scaling slowly about the
-   point the old subject stood on. The picture is a flat-lay with its
-   products ringing the edges, and a scale of any size pushed them out
-   of frame — so the drift is gone rather than re-aimed.
-
-   The copy animation is off under prefers-reduced-motion at the end
-   of this file: nothing here carries meaning that is lost when it
-   stops.                                                         */
-
+   Each line rises a little and fades up, one after the next, so the
+   eye is walked down the stack in reading order. Off under
+   prefers-reduced-motion below. */
 @keyframes hero-rise {
   from { opacity: 0; transform: translate3d(0, 20px, 0); }
   to   { opacity: 1; transform: none; }
 }
-
-/* --px / --py are written by initHeroParallax() in home.js and read by
-   the orb keyframes below. They default to 0 when the script never
-   runs, so the hero is inert without it. */
-.hero-frame { --px: 0px; --py: 0px; }
-
+.hero-eyebrow,
 .hero-title,
 .hero-desc,
-.hero-actions {
-  /* `both` so the opening frame applies before the delay elapses —
-     without it each line flashes at full opacity, then starts. */
+.hero-actions,
+.hero-cats {
+  /* `both` so the opening frame applies before the delay elapses. */
   animation: hero-rise 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.hero-title   { animation-delay: 0.06s; }
+.hero-eyebrow { animation-delay: 0.02s; }
+.hero-title   { animation-delay: 0.08s; }
 .hero-desc    { animation-delay: 0.22s; }
-.hero-actions { animation-delay: 0.36s; }
-
-/* The arrow leans out of the button on hover — the same gesture the
-   pill already makes when it lifts, carried through to the glyph. */
-.hero-cta-primary svg {
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.hero-cta-primary:hover svg { transform: translate3d(2px, -2px, 0); }
-
-/* ── Drifting light ───────────────────────────────────────
-   Three blurred discs behind the copy, each on its own duration so
-   they never fall into step and never repeat the same arrangement.
-   Soft-light blending keeps them as changes in the light on the wall
-   rather than shapes sitting on top of it.                      */
-.hero-orbs {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.hero-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(52px);
-  mix-blend-mode: soft-light;
-  will-change: transform;
-}
-.hero-orb--1 {
-  width: 340px; height: 340px;
-  right: 8%; top: 12%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--primary) 85%, transparent) 0%, color-mix(in srgb, var(--primary) 0%, transparent) 70%);
-  animation: orb-a 19s ease-in-out infinite alternate;
-}
-.hero-orb--2 {
-  width: 260px; height: 260px;
-  right: 26%; bottom: 14%;
-  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 70%);
-  animation: orb-b 25s ease-in-out infinite alternate;
-}
-.hero-orb--3 {
-  width: 400px; height: 400px;
-  left: 30%; top: 30%;
-  background: radial-gradient(circle, rgba(255,140,170,0.7) 0%, rgba(255,140,170,0) 70%);
-  animation: orb-c 31s ease-in-out infinite alternate;
-}
-@keyframes orb-a {
-  from { transform: translate3d(calc(var(--px) * -1.8), calc(var(--py) * -1.8), 0) scale(1); }
-  to   { transform: translate3d(calc(var(--px) * -1.8 - 90px), calc(var(--py) * -1.8 + 60px), 0) scale(1.18); }
-}
-@keyframes orb-b {
-  from { transform: translate3d(calc(var(--px) * 2.2), calc(var(--py) * 2.2), 0) scale(1.1); }
-  to   { transform: translate3d(calc(var(--px) * 2.2 + 70px), calc(var(--py) * 2.2 - 55px), 0) scale(0.9); }
-}
-@keyframes orb-c {
-  from { transform: translate3d(calc(var(--px) * 1.4), calc(var(--py) * 1.4), 0) scale(0.95); }
-  to   { transform: translate3d(calc(var(--px) * 1.4 + 60px), calc(var(--py) * 1.4 + 45px), 0) scale(1.15); }
-}
-
-/* ── Claims strip ─────────────────────────────────────────
-   The one part of the hero that moves continuously and obviously.
-   The track holds the list twice and travels exactly -50%, so the
-   second run is in the first run's place at the moment it resets —
-   which is what makes the loop invisible. Any other distance and it
-   would visibly jump.                                           */
-.hero-marquee {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  border-top: 1px solid var(--hero-rule, rgba(50,48,44,0.18));
-  background: rgba(255,255,255,0.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.hero-marquee-track {
-  display: flex;
-  align-items: center;
-  width: max-content;
-  padding: 15px 0;
-  animation: marquee 34s linear infinite;
-  will-change: transform;
-}
-/*
-  Two of these, identical. -50% of the track is exactly one group, so
-  the reset lands the second group where the first started and the
-  seam is invisible.
-
-  min-width is the part that was missing: with ten items the group
-  measured 994px against a 1910px strip, so the second half ran out
-  of content most of the way across and the tail of the loop went
-  blank before snapping back. Forcing each group to a viewport wide
-  means there is always something in frame, and space-around shares
-  out any slack — identically in both groups, so they still line up.
-*/
-.hero-marquee-group {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 22px;
-  min-width: 100vw;
-  /* Keeps the spacing across the join equal to the spacing within. */
-  padding-right: 22px;
-  flex-shrink: 0;
-}
-.hero-marquee-group span {
-  font-family: var(--font-head);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 2.4px;
-  text-transform: uppercase;
-  color: var(--black);
-  white-space: nowrap;
-}
-.hero-marquee-group i { color: var(--primary); font-style: normal; }
-@keyframes marquee {
-  from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-50%, 0, 0); }
-}
-/* Pausing on hover makes the claims readable instead of a blur. */
-.hero-marquee:hover .hero-marquee-track { animation-play-state: paused; }
-
-/* ── Scroll cue ───────────────────────────────────────────
-   Sits above the strip, on the copy's side so it never lands on the
-   model. The dot falls inside the mouse; the whole cue breathes.  */
-.hero-cue {
-  position: absolute;
-  bottom: 84px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(50,48,44,0.62);
-  animation: cue-breathe 2.6s ease-in-out infinite;
-}
-.hero-cue-dot { animation: cue-dot 2.6s ease-in-out infinite; }
-@keyframes cue-breathe {
-  0%, 100% { transform: translate3d(-50%, 0, 0); }
-  50%      { transform: translate3d(-50%, 7px, 0); }
-}
-@keyframes cue-dot {
-  0%, 100% { transform: translate3d(0, 0, 0); opacity: 1; }
-  50%      { transform: translate3d(0, 7px, 0); opacity: 0.25; }
-}
-/* Pill shape and the arrow come from the reference; the colour is
-   this site's own primary, not the reference's gold. */
-.hero-cta-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  height: 46px;
-  padding: 0 26px;
-  border: none;
-  border-radius: 999px;
-  background: var(--primary-grad);
-  color: var(--on-primary);
-  font-family: var(--font-head);
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: filter 0.15s, transform 0.15s;
-}
-.hero-cta-primary:hover { filter: brightness(0.90); transform: translateY(-1px); }
-/* The hero's button stands alone, so it takes a wider stance than the
-   same button in the collage below. */
-.hero-actions .hero-cta-primary {
-  justify-content: center;
-  padding: 0 44px;
-}
+.hero-actions { animation-delay: 0.34s; }
+.hero-cats    { animation-delay: 0.46s; }
 
 /* ── ─────────────────────────────────────────────────────
-   2 — COLLAGE
-   The brand's own section: a heading and a short claim on the
-   left, a tall portrait in the middle, a rotating seal and a
-   second picture on the right. Deliberately asymmetric and
-   overlapping — it should not read as a grid of cards.
-
-   Laid out on an explicit 12-column grid so the overlaps are
-   stated rather than produced by negative margins.
+   2 — STORY
+   One sentence with pictures set into the words, then the edit:
+   a bento of tiles — a large one, a wide colour tile carrying the
+   cash-on-delivery promise, and two small ones.
    ───────────────────────────────────────────────────── ── */
-.collage {
-  /*
-    Pure white, not the tinted band it used to be: that was a pale pink
-    left from the old palette, and it read as a smudge between the
-    hero's warm off-white above and the category doors below.
-
-    Held in a variable because the step cut out of the picture below is
-    drawn by painting band-coloured shapes over it — four separate
-    declarations that are only invisible while they match this one
-    exactly. Changing the band without changing them leaves the notch
-    showing as a patch of the old colour.
-  */
-  --band: #FFFFFF;
-  /* The same colour at zero alpha. Not the `transparent` keyword: that
-     is transparent BLACK, and the antialiased rim of the quarter-discs
-     below would blend towards grey against it. */
-  --band-fade: rgba(255,255,255,0);
-  background: var(--band);
-  /* Generous below, where the full-bleed category doors follow. Above,
-     the hero is now a contained card with its claims strip under it,
-     so the section can follow on closely — a long empty band after a
-     short hero just reads as a gap. */
-  padding: 72px 0 190px;
+.story {
+  background: var(--white);
+  padding: clamp(64px, 8vw, 112px) 0 clamp(72px, 8vw, 112px);
 }
-.collage-inner {
+.story-inner {
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: 0 24px;
-  display: grid;
-  /* Three columns, one row. The left column is a single cell holding
-     its own stack — an earlier version spanned the portrait across two
-     grid rows, which stretched the first row to half the portrait's
-     height and tore a gap between the heading and the clip. */
-  grid-template-columns: 4.2fr 4.4fr 3.4fr;
-  column-gap: 32px;
-  align-items: start;
+  padding: 0 32px;
 }
-.collage-left {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 22px;
-}
-.collage-title {
+/* Three set lines on wide screens, broken where the design breaks
+   them (the .story-br's): the first ends on the second picture, the
+   last is "remember." alone. Narrower, the breaks come off and the
+   browser evens the lines out instead. */
+.story-line {
   font-family: var(--font-head);
-  font-size: clamp(26px, 2.6vw, 36px);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.4px;
+  font-weight: 500;
+  font-size: clamp(28px, 4.4vw, 62px);
+  line-height: 1.18;
+  letter-spacing: -0.03em;
   color: var(--black);
+  text-align: center;
+  margin: 0 auto;
 }
-.collage-sub {
-  font-size: 13px;
-  color: var(--mid);
-  margin-top: 10px;
+.story-line em { font-style: normal; color: var(--primary-text); }
+.story-pill {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  top: -0.06em;
+  width: 1.9em;
+  height: 0.92em;
+  margin: 0 0.12em;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--input-bg);
 }
-/* The small video still under the heading. */
-.collage-clip {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: 18px;
+.story-pill img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.edit {
+  margin-top: clamp(48px, 6vw, 80px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 250px;
+  gap: 16px;
 }
-.collage-play {
+.edit-tile {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--input-bg);
+  text-decoration: none;
+}
+.edit-tile--big  { grid-column: span 2; grid-row: span 2; }
+.edit-tile--wide { grid-column: span 2; }
+.edit-tile img {
   position: absolute;
   inset: 0;
-  margin: auto;
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.92);
-  color: var(--black);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1;
-  transition: transform 0.15s, background 0.15s;
-}
-.collage-play:hover { transform: scale(1.08); background: #FFFFFF; }
-/* The tall centre portrait, lifted so it breaks the top line of the
-   row — the overlap is what stops this reading as three cards. */
-.collage-portrait {
-  position: relative;
-  aspect-ratio: 3 / 4;
-  border-radius: 22px;
-  margin-top: -28px;
-  /* The notch and the button reach outside these bounds; border-radius
-     still clips the background image, so nothing is lost by this. */
-  overflow: visible;
-}
-.collage-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 20px;
-  padding-top: 28px;
-}
-/* The rotating seal. Text on a circle needs SVG; the dot is drawn
-   here so the SVG only carries the letters. */
-.collage-seal {
-  position: relative;
-  width: 132px;
-  height: 132px;
-}
-.collage-seal svg {
   width: 100%;
   height: 100%;
-  animation: seal-spin 22s linear infinite;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.collage-seal-dot {
+a.edit-tile:hover img { transform: scale(1.05); }
+.edit-shade {
   position: absolute;
   inset: 0;
-  margin: auto;
-  width: 12px;
-  height: 12px;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.48) 100%);
+}
+.edit-caption {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 26px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.edit-name {
+  display: block;
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+}
+.edit-sub {
+  display: block;
+  font-size: 15px;
+  color: rgba(255,255,255,0.9);
+  margin-top: 4px;
+}
+.edit-go {
+  flex: none;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: var(--black);
+  background: #FFFFFF;
+  color: var(--black);
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s;
 }
-@keyframes seal-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .collage-seal svg { animation: none; }
-  .hero-title,
-  .hero-desc,
-  .hero-actions { animation: none; }
-  .hero-cta-primary svg { transition: none; }
-  .hero-orb,
-  .hero-marquee-track,
-  .hero-cue,
-  .hero-cue-dot { animation: none; }
-  /* Still centred once the animation that was doing it stops. */
-  .hero-cue { transform: translateX(-50%); }
-}
-.collage-still {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: 18px;
-}
-/*
-  The step cut out of the picture's bottom-left corner, and the button
-  that sits in it.
-
-  The shape, read off the reference: the picture's left edge comes
-  straight down, turns right along the top of the step, turns down
-  again at the step's right edge, runs to the picture's bottom, and
-  only there curves right into the bottom edge. The band colour simply
-  continues through the gap — it does NOT wrap around the button. An
-  earlier attempt drew a pill behind the button instead, which enclosed
-  it on all four sides and was the wrong shape entirely.
-
-  Proportions are taken from the reference rather than guessed: the
-  step is about 27% of the picture's width and 15% of its height, so
-  they are written as percentages and hold at any column width.
-*/
-.collage-notch {
+.edit-tile:hover .edit-go { transform: rotate(45deg); }
+.edit-chip {
   position: absolute;
-  left: -60px;                    /* runs out past the picture into the band */
-  bottom: 0;
-  width: calc(27% + 60px);
-  height: 15%;
-  background: var(--band);
-  /* The inward turn where the step's top meets its right edge. */
-  border-top-right-radius: 20px;
-  z-index: 1;
+  left: 16px;
+  bottom: 16px;
+  background: #FFFFFF;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--black);
 }
-/*
-  Rounds the picture's new bottom-left corner — the one the step
-  creates, which is inside the element's box and so out of reach of
-  border-radius. The gradient is band colour everywhere except a
-  quarter-disc, and that disc is the corner left showing.
-*/
-.collage-notch::after {
-  content: '';
-  position: absolute;
-  left: 100%;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  background: radial-gradient(circle at 100% 0, var(--band-fade) 0 20px, var(--band) 20px);
-}
-
-.collage-notch::before {
-  content: '';
-  position: absolute;
-  left: 60px;
-  top: -20px;
-  width: 20px;
-  height: 20px;
-  background: radial-gradient(circle at 100% 0, var(--band-fade) 0 20px, var(--band) 20px);
-}
-
-/*
-  Wrapper for the button and the line beneath it. Anchored by its TOP,
-  not its bottom: anchoring the bottom would pin the note's last line to
-  the picture and shove the button up out of the step whenever the text
-  reflowed. 100% is the picture's height, so `100% - 66px` puts the
-  button's top 66px above the picture's bottom — where it sat alone.
-*/
-.collage-cta-slot {
-  position: absolute;
-  left: -380px;
-  top: calc(100% - 66px);
-  z-index: 2;
+.edit-cod {
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: 30px;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  /* Wide enough that the note clears the picture's bottom edge and lands
-     on the band, rather than putting dark text over the photograph. */
-  gap: 26px;
+  justify-content: space-between;
 }
-.collage-cta {
-  position: relative;
+.edit-cod-title {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  max-width: 440px;
   margin: 0;
 }
-.collage-note {
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--mid);
-  width: 470px;
-  margin: 0;
+.edit-cod-sub { margin: 10px 0 0; font-size: 14px; opacity: 0.85; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow,
+  .hero-title,
+  .hero-desc,
+  .hero-actions,
+  .hero-cats { animation: none; }
+  .hero-cta,
+  .hero-cta svg,
+  .edit-tile img,
+  .edit-go,
+  .has-hero-overlay .nav-search { transition: none; }
+}
+
+/* The header's pill needs the width; below this the hero card and the
+   "Shop now" button carry the categories instead. */
+@media (max-width: 1100px) {
+  html:not(.nav-past-hero) .has-hero-overlay .nav-hero-cats { display: none; }
+}
+@media (max-width: 960px) {
+  .story-br { display: none; }
+  .story-line { text-wrap: balance; }
+  .edit { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 200px; }
+}
+@media (max-width: 640px) {
+  .hero { padding: 8px 8px 0; }
+  .hero-frame { min-height: 0; border-radius: 20px; }
+  .hero-photo img { object-position: 50% 40%; }
+  .hero-foot { padding: 220px 18px 20px; gap: 20px; }
+  .hero-desc { font-size: 15px; margin-top: 14px; }
+  .hero-actions { margin-top: 20px; }
+  .hero-cta { flex: 1 1 auto; height: 46px; padding: 0 20px; }
+  .hero-cats { width: 100%; padding: 13px; }
+
+  /* Header on a phone photo: the frame's 8px inset, plain white icons
+     (no glass circles — five of them don't fit), cart still solid. */
+  html:not(.nav-past-hero) .has-hero-overlay .navbar { top: 8px; left: 8px; right: 8px; height: 60px; }
+  html:not(.nav-past-hero) .has-hero-overlay .navbar-inner { padding: 0 10px 0 16px; gap: 10px; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-actions { gap: 2px; }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn,
+  html:not(.nav-past-hero) .has-hero-overlay .nav-user-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  html:not(.nav-past-hero) .has-hero-overlay .nav-icon-btn[data-nav="cart"] { background: #FFFFFF; }
+  html:not(.nav-past-hero) .has-hero-overlay .navbar .nav-search > svg:first-child [stroke] { stroke: #FFFFFF; }
+  html:not(.nav-past-hero) .has-hero-overlay .navbar .nav-search:hover { background: rgba(255,255,255,0.16); }
+
+  .story-inner { padding: 0 16px; }
+  .edit-tile--big { grid-row: span 1; }
+  .edit-caption { left: 20px; right: 20px; bottom: 18px; }
+  .edit-name { font-size: 26px; }
+  .edit-go { width: 44px; height: 44px; }
+  .edit-cod { padding: 22px; }
 }
 
 /* ── ─────────────────────────────────────────────────────
@@ -706,71 +774,9 @@
 }
 
 /* ── Narrow screens ───────────────────────────────────────
-   The collage's overlaps only work with room for them, so below
-   the desktop breakpoint it unwinds into one column and the doors
-   stack. The hero loses its side-by-side split and centres.  */
+   Below the desktop breakpoint the doors stack. */
 @media (max-width: 1024px) {
-  .hero-body {
-    width: 100%;
-    padding: calc(var(--nav-h) + var(--subnav-h)) 32px 0;
-    margin: 0;
-  }
-  /* Stacked layout: the copy sits over the picture rather than beside
-     it, so the wash is carried down the whole frame to keep the dark
-     type off the busiest part of the photograph. #EAD6BB is the median
-     of the photo's bare marble (hero_bg.png) — white here would sit as
-     a pale panel on top of a beige picture. */
-  .hero-scrim {
-    background: linear-gradient(
-      180deg,
-      rgba(234,214,187,0.92) 0%,
-      rgba(234,214,187,0.55) 30%,
-      rgba(234,214,187,0.62) 60%,
-      rgba(234,214,187,0.88) 100%
-    );
-  }
-  .collage { padding-top: 56px; }
-  .collage-inner { grid-template-columns: 1fr; row-gap: 28px; }
-  .collage-portrait { margin-top: 0; aspect-ratio: 4 / 5; }
-  .collage-side { align-items: flex-start; padding-top: 0; }
-  /* Stacked: there is no gutter to straddle, so the scoop is dropped
-     and the button sits inside the picture's corner instead. */
-  /* Stacked: no gutter to straddle, so the button sits fully inside
-     the picture's corner and the scoop is dropped. */
-  /* Stacked: no gutter to straddle, so the step is dropped and the
-     button sits inside the picture's corner. */
-  .collage-notch { display: none; }
-  .collage-cta-slot {
-    left: 20px;
-    right: 20px;
-    top: auto;
-    bottom: 20px;
-    align-items: flex-start;
-  }
-  /* The note is a fixed 470px so its first line can run under the
-     button at desktop width. There is no room for that here. */
-  .collage-note { width: auto; max-width: 100%; }
   .door { flex-basis: 100%; min-height: 300px; }
-}
-@media (max-width: 640px) {
-  /*
-    A phone shows a slice about a quarter of the picture wide. Centred,
-    that slice is the open middle of the flat-lay and no product is in
-    it at all. 20% pulls it left onto the column of brushes, compact and
-    foundation, so the picture still says what it is.
-  */
-  .hero-photo { background-position: 20% center; }
-
-  .hero-body { padding: calc(var(--nav-h) + var(--subnav-h)) 20px 0; }
-  /* The headline's <br> is placed for two wide lines. A phone can't
-     hold either of them, so a forced break there strands a word on a
-     line of its own ("a" at 360px, "you." at 390px). Drop it and let
-     the browser even the lines out instead. */
-  .hero-title br { display: none; }
-  .hero-title { text-wrap: balance; }
-  .hero-actions { flex-direction: column; align-items: stretch; }
-  .collage { padding: 44px 0 112px; }
-  .collage-inner { padding: 0 16px; }
 }
 
 /* ── ══════════════════════════════════════════════════════
@@ -1959,92 +1965,6 @@
   .legal-section p, .legal-section li { font-size: 15.5px; }
 }
 
-/* ── Side-copy hero photograph (.hero--side) ─────────────────
-   For a hero image with the products grouped on the right and open
-   space on the left — the current one is a white studio shot. On wide
-   screens the copy moves into that open left side instead of sitting
-   centred over the products. Remove `hero--side` from the <section> in
-   home.html to go back to centred copy. White is the image's own
-   ground, so the frame shows the picture's colour while it loads. */
-.hero--side .hero-photo {
-  background-color: #FFFFFF;
-  background-position: right center;
-}
-.hero--side .hero-title { color: var(--black); }
-.hero--side .hero-desc { color: rgba(0,0,0,0.72); }
-.hero--side .hero-marquee {
-  background: rgba(255,255,255,0.70);
-  border-top-color: rgba(0,0,0,0.08);
-}
-
-@media (min-width: 1025px) {
-  /* No wash: the left half of the picture is already bare white. */
-  .hero--side .hero-scrim { background: none; }
-  .hero--side .hero-body {
-    margin-inline: 0;
-    /* Aligned with the page's content column, however wide the window. */
-    margin-left: max(0px, calc((100vw - var(--content-max)) / 2));
-    max-width: 760px;
-    text-align: left;
-  }
-  /* A short, two-line headline ("Beauty, / boldly yours."), so it can be
-     set big: clearly the headline, several sizes above the line below. */
-  .hero--side .hero-title {
-    font-size: clamp(56px, 5.2vw, 92px);
-    line-height: 0.98;
-    letter-spacing: -2px;
-  }
-  .hero--side .hero-desc { font-size: 17px; max-width: 470px; margin-top: 24px; }
-  .hero--side .hero-desc { margin-left: 0; margin-right: 0; }
-  .hero--side .hero-actions { justify-content: flex-start; }
-}
-
-@media (max-width: 1024px) {
-  /* Stacked: the copy sits centred over the products, so a white wash
-     lifts the dark type off them. */
-  .hero--side .hero-scrim {
-    background: linear-gradient(180deg,
-      rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.60) 50%, rgba(255,255,255,0.80) 100%);
-  }
-}
-@media (max-width: 640px) {
-  /* A phone shows a narrow slice: keep the products in it. */
-  .hero--side .hero-photo { background-position: 72% center; }
-  .hero--side .hero-title { font-size: 48px; line-height: 1.02; letter-spacing: -1.2px; }
-}
-
-/* ── Glass nav over the hero ───────────────────────────────────
-   On the home page the navbar and category row are laid over the hero
-   (.has-hero-overlay), so over a .hero--side photo they become frosted
-   white glass with the picture showing through; type and icons keep
-   their ordinary dark colours from common.css. Once the bars scroll
-   past the hero, nav-autohide.js sets html.nav-past-hero and they turn
-   back into the ordinary solid white bar. */
-/* One sheet of glass behind both bars, not one per bar: two separately
-   blurred panes showed two tints and a seam where they met. The bars go
-   clear, keeping their hairline divider, and the glass is drawn once by
-   the category row's ::before, reaching up behind the top bar. It hangs
-   off the lower bar so it stacks beneath the top bar's search, icons
-   and menus rather than over them. */
-html:not(.nav-past-hero) .has-hero-overlay:has(.hero--side) .navbar,
-html:not(.nav-past-hero) .has-hero-overlay:has(.hero--side) .subnav {
-  background: transparent;
-  border-bottom-color: rgba(0,0,0,0.08);
-}
-html:not(.nav-past-hero) .has-hero-overlay:has(.hero--side) .subnav::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: calc(var(--nav-h) + var(--subnav-h));
-  z-index: -1;
-  pointer-events: none;
-  background: rgba(255,255,255,0.5);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  backdrop-filter: blur(16px) saturate(150%);
-}
-
 /* ── About header on the dark hero photograph (.about-hero--dark) ──
    The same near-black picture as the home hero, so the copy turns light
    and the pool behind it goes dark instead of cream. Remove the class
@@ -2058,84 +1978,3 @@ html:not(.nav-past-hero) .has-hero-overlay:has(.hero--side) .subnav::before {
 .about-hero--dark .about-eyebrow { color: #FF8A80; }
 .about-hero--dark .about-title { color: #FFFFFF; }
 .about-hero--dark .about-tagline { color: rgba(255,255,255,0.82); }
-
-/* ── Card hero (.hero--card) ─────────────────────────────────────
-   The photograph as a rounded panel inside the content column, below
-   the ordinary white nav, rather than a full-bleed screen the nav sits
-   on. It stops well short of the fold so the next section shows on
-   arrival. The claims strip runs underneath the card instead of over
-   the picture. Drop `hero--card` (and put `has-hero-overlay` back on
-   <body>) to return to the full-screen hero. */
-/* Full-bleed band in the collage's white, so there is no seam where the
-   hero meets the next section; the padding lines the card up with the
-   content column (which carries its own 32px gutter). */
-.hero--card {
-  background: var(--white);
-  padding: 20px max(32px, calc((100% - var(--content-max)) / 2 + 32px)) 0;
-}
-.hero--card .hero-frame {
-  min-height: 0;
-  height: clamp(420px, 62svh, 600px);
-  border-radius: 28px;
-  isolation: isolate;
-  background-color: #FFFFFF;
-  /* The photo's ground is white too, so the edge needs a line. */
-  border: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 24px 48px -32px rgba(0,0,0,0.22);
-}
-/* The card sits below the nav now, so the copy no longer needs to clear it. */
-.hero--card .hero-body { padding: 48px 56px; }
-.hero--card .hero-marquee {
-  position: relative;
-  margin-top: 14px;
-  background: none;
-  border-top: 0;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  /* Fade the ends so the loop slides in and out rather than being cut. */
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-}
-.hero--card .hero-marquee-track { padding: 12px 0; }
-.hero--card .hero-marquee-group span { font-size: 12px; color: var(--mid); }
-
-@media (min-width: 1025px) {
-  /* The card already sits in the content column; the copy just takes
-     its own inset from the card's edge. */
-  .hero--card .hero-body { margin-left: 0; max-width: 620px; }
-  .hero--card .hero-title { font-size: clamp(52px, 4.6vw, 80px); }
-}
-/* Stacked: the copy can't sit beside the products, and laid over them
-   it needs a wash heavy enough to hide them. So the card splits — the
-   photograph, clear, across the top; the copy on white beneath. */
-@media (max-width: 1024px) {
-  .hero--card { padding: 16px 20px 0; }
-  .hero--card .hero-frame {
-    height: auto;
-    flex-direction: column;
-    align-items: stretch;
-    border-radius: 22px;
-  }
-  .hero--card .hero-photo {
-    position: relative;
-    inset: auto;
-    height: 300px;
-    flex-shrink: 0;
-    /* The products cluster on the right of this picture. */
-    background-position: 88% center;
-  }
-  .hero--card .hero-scrim,
-  .hero--card .hero-orbs { display: none; }
-  .hero--card .hero-body { padding: 8px 32px 36px; }
-}
-@media (max-width: 640px) {
-  .hero--card { padding: 12px 16px 0; }
-  .hero--card .hero-frame { border-radius: 18px; }
-  /* The products are the right ~40% of a 16:9 picture: scaled to a
-     little over the box's height, they fill most of a phone's width. */
-  .hero--card .hero-photo { height: 250px; background-size: auto 118%; background-position: 86% 45%; }
-  .hero--card .hero-body { padding: 4px 20px 26px; }
-  .hero--card .hero-title { font-size: 38px; }
-  .hero--card .hero-desc { margin-top: 12px; }
-  .hero--card .hero-actions { margin-top: 20px; }
-}

@@ -163,6 +163,14 @@
   --on-primary:   #FFFFFF;   /* 4.8:1 on the fill                      */
   --primary-grad: #1A8338;
 }
+:root[data-store-theme="espresso"] {
+  --primary:      #2A1E16;   /* espresso brown — buttons, badges, fills, links */
+  --primary-dk:   #1A120D;   /* hover                                  */
+  --primary-lt:   rgba(42,30,22,0.10);
+  --primary-text: #2A1E16;   /* the same brown for links and active text */
+  --on-primary:   #FFFFFF;   /* 15:1 on the fill                       */
+  --primary-grad: #2A1E16;
+}
 
 /* ── Reset & Base ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
