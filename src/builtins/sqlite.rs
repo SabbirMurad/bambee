@@ -46,6 +46,8 @@ pub enum Error {
     Pool(r2d2::Error),
     /// The query itself failed.
     Sqlite(rusqlite::Error),
+    /// The blocking thread pool couldn't run the work (shutting down).
+    Blocking(String),
 }
 
 impl fmt::Display for Error {
@@ -54,6 +56,7 @@ impl fmt::Display for Error {
             Error::Config(message) => write!(fmt, "{}", message),
             Error::Pool(error) => write!(fmt, "sqlite pool: {}", error),
             Error::Sqlite(error) => write!(fmt, "sqlite: {}", error),
+            Error::Blocking(error) => write!(fmt, "sqlite blocking pool: {}", error),
         }
     }
 }
@@ -131,6 +134,44 @@ fn pool(dbf: &DBF) -> Result<&'static SqlitePool> {
 /// connection stays checked out for the whole await and starves other requests.
 pub fn connect(dbf: DBF) -> Result<SqliteConn> {
     Ok(pool(&dbf)?.get()?)
+}
+
+/// Runs `work` with a pooled connection on actix's blocking thread pool, for
+/// use from async handlers.
+///
+/// Calling `connect` straight from a handler blocks the worker thread while it
+/// waits for a free connection, and a handler that then awaits something else
+/// with the connection still checked out keeps it from the others. The home
+/// page asks for twenty-odd images at once; with eight connections, requests
+/// queued on one worker thread behind a blocked checkout could not finish and
+/// hand theirs back, so the checkout timed out and pictures came back as 500s.
+/// Here the wait happens off the async threads and the connection is returned
+/// before this resolves.
+pub async fn run<T, F>(dbf: DBF, work: F) -> Result<T>
+where
+    F: FnOnce(&SqliteConn) -> Result<T> + Send + 'static,
+    T: Send + 'static,
+{
+    actix_web::web::block(move || {
+        let conn = connect(dbf)?;
+        work(&conn)
+    })
+    .await
+    .map_err(|error| Error::Blocking(error.to_string()))?
+}
+
+/// One image blob — `column` is "webp" or "original" — or None when there is
+/// no row for `uuid`.
+pub async fn image_blob(column: &'static str, uuid: String) -> Result<Option<Vec<u8>>> {
+    use rusqlite::OptionalExtension;
+
+    run(DBF::IMG, move |conn| {
+        let sql = format!("SELECT {} FROM image WHERE uuid = ?1", column);
+        Ok(conn
+            .query_row(&sql, [&uuid], |row| row.get::<usize, Vec<u8>>(0))
+            .optional()?)
+    })
+    .await
 }
 
 pub fn create_initial_tables() -> Result<()> {
