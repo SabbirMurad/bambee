@@ -473,6 +473,41 @@ html.nav-snap .subnav { transition: none !important; }
 .hero-actions { animation-delay: 0.34s; }
 .hero-cats    { animation-delay: 0.46s; }
 
+/* ── The photo holds still ───────────────────────────────────
+   Scrolling down, the hero — frame, header, copy and card — moves up
+   with the page as usual, but the photograph inside it stays where it
+   is, so the frame slides up off a picture that doesn't move.
+
+   The photo is fixed to the window, at the frame's resting place, and
+   the frame's clip-path cuts it to the frame. clip-path rather than
+   overflow: overflow doesn't clip a fixed child, clip-path does.
+   Phones scroll the photo with the page (their toolbars resize the
+   window as you scroll, which makes a fixed picture jump). */
+@media (min-width: 641px) {
+  .hero-frame { clip-path: inset(0 round 28px); }
+  .hero-photo {
+    position: fixed;
+    /* From the window's top edge, not the frame's 12px inset: once the
+       frame has moved up, the strip above its resting place would
+       otherwise show the frame's ground instead of the picture. */
+    top: 0;
+    left: 12px;
+    right: 12px;
+    bottom: auto;
+    width: auto;
+    height: 912px;
+  }
+  /* And it zooms with the scroll: in on the way down, out on the way
+     up, pinned at its bottom edge so only the top and the two sides
+     grow. home.js writes --hero-zoom (1 at the top of the page, up to
+     1.2 once the hero has scrolled away). */
+  .hero-photo img {
+    transform: scale(var(--hero-zoom, 1));
+    transform-origin: 50% 100%;
+    will-change: transform;
+  }
+}
+
 /* ── ─────────────────────────────────────────────────────
    2 — STORY
    One sentence with pictures set into the words, then the edit:
@@ -480,6 +515,9 @@ html.nav-snap .subnav { transition: none !important; }
    cash-on-delivery promise, and two small ones.
    ───────────────────────────────────────────────────── ── */
 .story {
+  /* The tiles start off to the sides (see "Tiles fly in" below); clip
+     so that never widens the page. */
+  overflow-x: clip;
   background: var(--white);
   padding: clamp(64px, 8vw, 112px) 0 clamp(72px, 8vw, 112px);
 }
@@ -543,6 +581,25 @@ html.nav-snap .subnav { transition: none !important; }
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 a.edit-tile:hover img { transform: scale(1.05); }
+
+/* ── Tiles fly in ─────────────────────────────────────────────
+   Each tile is moved into place by the scroll: home.js writes --p on
+   it, 0 while the grid is still below the fold and 1 once it is well
+   up the screen, and back down on the way up. At 0 a tile sits off by
+   its own --dx/--dy, a little smaller and faded; at 1 it is exactly
+   where the grid puts it. Without the script (or with reduced motion)
+   --p is never written and stays 1: the tiles are simply in place. */
+.edit-tile {
+  --q: calc(1 - var(--p, 1));
+  transform:
+    translate3d(calc(var(--dx, 0px) * var(--q)), calc(var(--dy, 0px) * var(--q)), 0)
+    scale(calc(1 - 0.08 * var(--q)));
+  opacity: calc(1 - 0.6 * var(--q));
+}
+.edit-tile--big  { --dx: -140px; --dy: 90px; }
+.edit-tile--wide { --dx: 160px;  --dy: 30px; }
+.edit-tile:nth-child(3) { --dx: -40px; --dy: 160px; }
+.edit-tile:nth-child(4) { --dx: 60px;  --dy: 200px; }
 .edit-shade {
   position: absolute;
   inset: 0;
@@ -688,7 +745,8 @@ a.edit-tile:hover img { transform: scale(1.05); }
 .doors {
   display: flex;
   flex-wrap: wrap;
-  background: var(--ink);
+  /* No ground of its own: while a door is being revealed, the page
+     shows above its rising edge. */
 }
 .door {
   /* The 1px slack keeps rounding from pushing the last door of a full
@@ -703,16 +761,35 @@ a.edit-tile:hover img { transform: scale(1.05); }
   text-decoration: none;
   overflow: hidden;
 }
+/* ── Parallax drift ───────────────────────────────────────────
+   The doors themselves scroll with the page; the photograph inside
+   each moves more slowly, so it drifts within its frame. The photo is
+   cut 15% taller than the door at top and bottom to have room to move,
+   and home.js writes --py on each door: +1 while it is entering at the
+   bottom of the window, 0 at the middle, -1 as it leaves at the top.
+   Without the script (or with reduced motion) --py stays 0 and the
+   photo sits centred.
+
+   The hover zoom is a separate factor, --hz, registered so it still
+   eases on its own while the drift follows the scroll exactly. */
+@property --hz {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
 .door-photo {
   position: absolute;
-  inset: 0;
+  inset: -15% 0;
   background-color: #2C2427;
   background-image: var(--img, none);
   background-size: cover;
   background-position: center;
-  transition: transform 0.5s ease;
+  --hz: 1;
+  transform: translate3d(0, calc(var(--py, 0) * -10%), 0) scale(var(--hz));
+  transition: --hz 0.5s ease;
+  will-change: transform;
 }
-.door:hover .door-photo { transform: scale(1.05); }
+.door:hover .door-photo { --hz: 1.05; }
 /* Enough scrim for white type at any photograph. */
 .door::after {
   content: '';
@@ -762,7 +839,7 @@ a.edit-tile:hover img { transform: scale(1.05); }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: rgba(255,255,255,0.75);
+  color: var(--mid);
   text-align: center;
   padding: 24px;
 }
@@ -770,7 +847,7 @@ a.edit-tile:hover img { transform: scale(1.05); }
   font-family: var(--font-head);
   font-size: 17px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--black);
 }
 
 /* ── Narrow screens ───────────────────────────────────────
