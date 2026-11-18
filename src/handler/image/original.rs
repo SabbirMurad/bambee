@@ -4,53 +4,32 @@ use crate::model::ImageStruct;
 use crate::builtins::{mongo::MongoDB, sqlite};
 use actix_web::{web, Error, HttpResponse};
 
+/* Same shape as webp.rs: metadata first, blob read on the blocking pool. */
 pub async fn task(image_id: web::Path<String>) -> Result<HttpResponse, Error> {
     let image_id = image_id.trim().to_string();
-    let sqlite_conn = match sqlite::connect(sqlite::DBF::IMG) {
-        Ok(conn) => conn,
-        Err(error) => {
-            return Ok(Response::internal_server_error(&format!("Storage unavailable: {:?}", error)));
-        }
+
+    let collection = MongoDB.connect().collection::<ImageStruct>("image");
+    let meta = match collection.find_one(doc!{"uuid": &image_id}).await {
+        Ok(Some(meta)) if !meta.temporary && !meta.deleted => meta,
+        Ok(_) => return Ok(Response::not_found("Image not found!")),
+        Err(error) => return Ok(Response::internal_server_error(&error.to_string())),
     };
 
-    let result = sqlite_conn.query_row(
-        "SELECT original FROM image WHERE uuid = ?1",
-        [&image_id],
-        |row| row.get::<usize, Vec<u8>>(0)
-    );
-
-    let image_data = match result {
-        Ok(data) => data,
-        Err(error) => return Ok(
-            Response::internal_server_error(&error.to_string())
-        )
-    };
-
-    let db = MongoDB.connect();
-    let collection = db.collection::<ImageStruct>("image");
-    let result = collection.find_one(doc!{"uuid": image_id}).await;
-
-    if let Err(error) = result {
-        return Ok(Response::internal_server_error(&error.to_string()));
-    }
-
-    let option = result.unwrap();
-    if let None = option {
-        return Ok(Response::not_found("Image not found!"));
-    }
-
-    let image_meta = option.unwrap();
-
-    if image_meta.temporary  || image_meta.deleted {
-        return Ok(Response::not_found("Image not found!"));
-    }
     // The stored bytes may be gif/jpeg/webp as well as png; `original_type` holds
     // the MIME type detected at upload. Announcing image/png for all of them was
     // a lie the browser had to sniff its way past - and with nosniff now set,
     // sniffing is no longer an option.
-    Ok(
-        HttpResponse::Ok()
-        .content_type(image_meta.original_type.clone())
-        .body(image_data)
-    )
+    match sqlite::image_blob("original", image_id).await {
+        Ok(Some(bytes)) => Ok(
+            HttpResponse::Ok()
+            .content_type(meta.original_type.clone())
+            .insert_header(("Cache-Control", "public, max-age=86400"))
+            .body(bytes)
+        ),
+        Ok(None) => Ok(Response::not_found("Image not found!")),
+        Err(error) => {
+            log::error!("image original: {}", error);
+            Ok(Response::internal_server_error(&format!("Storage unavailable: {}", error)))
+        }
+    }
 }
