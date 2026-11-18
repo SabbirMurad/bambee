@@ -17,6 +17,119 @@ import { renderGrid, showSkeleton, hideSkeleton, emptyState, loadWishlist, paint
 import { session } from './session.js';
 import { toast } from './toast.js';
 
+/* ── Hero zoom ────────────────────────────────────────────────
+   The hero photo holds still while the page scrolls (shopping.css),
+   and zooms with the scroll: 1× at the top of the page, growing to
+   1 + HERO_ZOOM by the time the hero has scrolled out of view, and
+   back down on the way up. The stylesheet scales it from its bottom
+   edge, so the top and the sides are what grow.
+
+   Only where the photo holds still (the wide layout), and not for
+   anyone who has asked for less motion. Written on the animation
+   frame, not per scroll event — those fire faster than the screen
+   redraws.                                                        */
+const HERO_ZOOM = 0.2;
+
+function initHeroZoom() {
+  const photo = document.querySelector('.hero-photo');
+  if (!photo) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const wide = window.matchMedia('(min-width: 641px)');
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    if (!wide.matches) {
+      photo.style.removeProperty('--hero-zoom');
+      return;
+    }
+    // The distance over which the hero leaves the screen.
+    const span = photo.offsetHeight || 912;
+    const progress = Math.min(1, Math.max(0, window.scrollY / span));
+    photo.style.setProperty('--hero-zoom', (1 + HERO_ZOOM * progress).toFixed(4));
+  };
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  wide.addEventListener('change', update);
+  update();
+}
+
+/* ── Story tiles fly in ────────────────────────────────────────
+   The four tiles under the story sentence are moved into place by the
+   scroll (shopping.css "Tiles fly in"): each gets --p from 0 (off to
+   its side) to 1 (in place). The run starts just after the grid's top
+   enters the bottom of the window and ends about a third of the way
+   down from the top; each tile starts a little after the one before, so they
+   arrive one by one. The run waits until the grid is DELAY px into the
+   window, so the tiles start moving once they're properly in view.
+   Eased, so they settle rather than stop dead.
+   Scrolling back up runs it in reverse.                            */
+function initTilesFlyIn() {
+  const grid = document.querySelector('.edit');
+  if (!grid) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const tiles = [...grid.querySelectorAll('.edit-tile')];
+  if (!tiles.length) return;
+
+  const STAGGER = 0.12;                       // of the run, between tiles
+  const DELAY = 100;                          // px the grid is in view before it starts
+  const span = 1 - STAGGER * (tiles.length - 1);
+  const ease = (x) => 1 - Math.pow(1 - x, 3);  // ease-out cubic
+  const clamp = (x) => Math.min(1, Math.max(0, x));
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+    const top = grid.getBoundingClientRect().top;
+    const run = clamp((vh - DELAY - top) / (vh * 0.67));
+    tiles.forEach((tile, i) => {
+      const p = ease(clamp((run - i * STAGGER) / span));
+      tile.style.setProperty('--p', p.toFixed(4));
+    });
+  };
+
+  const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request);
+  update();
+}
+
+/* ── Category doors: parallax drift ────────────────────────────
+   Each door's photo drifts within its frame as the page scrolls
+   (shopping.css "Parallax drift"). --py is where the door's centre is
+   against the window's: +1 as it enters at the bottom, 0 in the
+   middle, -1 as it leaves at the top. The doors are built by
+   loadCategories() after a fetch, so they are looked up on each frame
+   rather than once at start.                                       */
+function initDoorsParallax() {
+  const section = document.getElementById('category-doors');
+  if (!section) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+    section.querySelectorAll('.door').forEach((door) => {
+      const rect = door.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > vh) return;   // off screen: leave it
+      const reach = (vh + rect.height) / 2;
+      const offset = (rect.top + rect.height / 2 - vh / 2) / reach;
+      door.style.setProperty('--py', Math.min(1, Math.max(-1, offset)).toFixed(4));
+    });
+  };
+
+  const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request);
+  // The doors arrive after a fetch: place them the moment they land.
+  new MutationObserver(request).observe(section, { childList: true });
+  update();
+}
+
 /* ── Newsletter signup ────────────────────────────────────────
    Posts to /v1/newsletter, which takes an address without an account.
 
@@ -305,6 +418,9 @@ async function loadRecentlyViewed() {
   const [trending, arrivals] = productRows();
 
   initSignup();
+  initHeroZoom();
+  initTilesFlyIn();
+  initDoorsParallax();
 
   pointViewAllLinks();
   loadCategories();
